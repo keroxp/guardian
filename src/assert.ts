@@ -20,15 +20,14 @@ export function isISO8601String(value: any): boolean {
 }
 
 export function areNotNull(...args): boolean {
-    if (args === null) throw new Error("argument itself is null.");
     for (const a of args) {
         if (a === null) return false;
     }
     return true;
 }
 
-export function assertAreNotNull(args: any[], error: string = "arguments contains null.") {
-    if (args === null || args === void 0) throw new Error(error);
+export function assertAreNotNull(args: any[], error: string = "arguments contains null") {
+    if (!areNotNull(args)) throw new Error("argument itself is null");
     if (!areNotNull(...args)) throw new Error(error);
 }
 
@@ -40,7 +39,6 @@ export function areNeitherNullNorUndefined(...args): boolean {
 }
 
 export function assertAreNeitherNullNorUndefined(...args: any[]) {
-    if (args === null || args === void 0) throw new Error(`argument itself is ${args}`);
     if (!areNeitherNullNorUndefined(...args)) throw new Error(`arguments contain null or undefined: [${args}]`);
 }
 

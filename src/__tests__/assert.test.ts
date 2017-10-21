@@ -1,5 +1,5 @@
 import {
-    assertAreNeitherNullNorUndefined, assertAreNotNull, assertHasOwnDefinedProperties,
+    assertAreNeitherNullNorUndefined, assertAreNotNull, assertHasOwnDefinedProperties, assertHasOwnProperties,
     hasOwnDefinedProperties, hasOwnProperties, isFalsy, isISO8601String, isStringAndNotEmpty, isTruthy,
     logicalAnd
 } from "../assert";
@@ -42,6 +42,7 @@ describe("assert", () => {
         expect(isISO8601String("2011-10-05T14:48:00.000")).toBe(false);
     });
     test("assertAreNotNull", () => {
+        expect(() => assertAreNotNull(null)).toThrow("argument itself is null");
         expect(() => assertAreNotNull([0, "", [], {}, false, undefined, void 0])).not.toThrow();
         expect(() => assertAreNotNull(null)).toThrow();
         expect(() => assertAreNotNull([null])).toThrow();
@@ -65,6 +66,17 @@ describe("assert", () => {
         expect(hasOwnProperties({
             a: 0,
         }, [null, undefined])).toBe(false);
+    });
+    test("assertHasOwnProperties", () => {
+        expect(() => assertHasOwnProperties({
+            a: 0, b: 1
+        }, ["a", "b"])).not.toThrow();
+        expect(() => assertHasOwnProperties({
+            a: 0,
+        }, ["a", "b"])).toThrow();
+        expect(() => assertHasOwnProperties({
+            a: 0,
+        }, [null, undefined])).toThrow();
     });
     test("hasOwnPropertiesはないフィールドを書き出す", () => {
         const dest = [];

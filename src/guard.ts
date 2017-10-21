@@ -1,10 +1,9 @@
 import {isArray, isFunction} from "util";
-import {Predicate} from "./assert";
+import {assertAreNeitherNullNorUndefined, Predicate} from "./assert";
 import {functionName} from "./function-name";
 
 export interface ThenThrow {
     thenThrow(mapper?: (e) => any, prefixMessage?: string): Guard;
-    thenThrowNew(constructor?: new (message: string) => Error, prefixMessage?: string): Guard;
 }
 
 export interface Guard extends ThenThrow {
@@ -30,9 +29,6 @@ class GuardImpl implements Guard {
         return this;
     }
 
-    thenThrowNew(ctor: new (message: string) => Error = Error, prefixMessage?: string) {
-        return this.thenThrow(e => new ctor(e));
-    }
     thenThrow(mapper: (e) => any = e => new Error(e), prefixMessage?: string) {
         try {
             for (const func of this.funcs) {
@@ -64,9 +60,10 @@ export function unless(func: Predicate, named: boolean = false): Predicate {
     return named ? namedFunction(`unless_${functionName(func)}`, ret) : ret;
 }
 
-export function assertify(func: Predicate, message?: string, named: boolean = false): AssertFunc {
+export function assertify(func: Predicate, messagePrefix?: string, named: boolean = false): AssertFunc {
     const ret = (...args) => {
-        const msg = message || `assertion failed: [${args.toString()}] != ${functionName(func)}`;
+        let msg = `assertion failed: [${args.toString()}] != ${functionName(func)}`;
+        if (messagePrefix) msg = `${messagePrefix}: ${msg}`;
         if (!func(...args)) throw new Error(msg);
     };
     return named ? namedFunction(`assert_${functionName(func)}`, ret) : ret;
@@ -91,9 +88,10 @@ export function guard(func: AssertFunc | AssertFunc[] | Guard | Guard[], ...args
     else if (isGuard(func)) {
         return new GuardImpl(func.funcs, ...args);
     }
-    else {
+    else if (isFunction(func)) {
         return new GuardImpl([func], ...args);
     }
+    throw new Error(`assert func is invalid: func=${func}`);
 }
 
 export function promiseGuard(func: AssertFunc | AssertFunc[] | Guard | Guard[], firstArg: any, ...restArgs: any[]): Promise<boolean> {
